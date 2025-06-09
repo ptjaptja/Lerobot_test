@@ -19,12 +19,15 @@ taskname修改为描述任务的语言，后续会用于作为language prompt使
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--raw_dir", type=str, default=r"E:\dataset\toumai\20241219dataset\eval_quat")
-    parser.add_argument("--repo_id", type=str, default="ptja/new_dataset")
-    parser.add_argument("--root", type=str, default=r"E:\dataset\lerotest_eval")
+    parser.add_argument("--raw_dir", type=str, default=r"E:\dataset\toumai\20241219dataset\sixD_train")
+    parser.add_argument("--repo_id", type=str, default="ptja/sixD1")
+    parser.add_argument("--root", type=str, default=r"E:\dataset\lero_sixD_train_cosmos")
     parser.add_argument("--fps", type=int, default=30)
     parser.add_argument("--use_videos", type=bool, default=True)
-    parser.add_argument("--task_name", type=str, default="pick up needle")
+    parser.add_argument("--task_name", type=str, default="Gripper moves and picks up the metal ring")
+    parser.add_argument("--start_frame", type=int, default=0)
+    parser.add_argument("--end_frame", type=int, default=149)
+    parser.add_argument("--resize", type=bool, default=True)
     return parser.parse_args()
 
 
@@ -93,8 +96,11 @@ def check_hdf5_dataset(raw_dir):
     features["observation.state"] = {"shape":(action_shape[0],),"dtype":"float32"}
     features["action"] = {"shape":(action_shape[0],),"dtype":"float32"}
     
+    #仅top_camera做测试，删掉
+    camera_keys=["cam_high"]
     for camera in camera_keys:
-        features[f"observation.images.{camera}"] = {"shape":tuple(cam_shape[0]),"dtype":"video","names": ["height","width","channel"]}
+        # features[f"observation.images.{camera}"] = {"shape":tuple(cam_shape[0]),"dtype":"video","names": ["height","width","channel"]}
+        features[f"observation.images.{camera}"] = {"shape":tuple([704,960,3]),"dtype":"video","names": ["height","width","channel"]}
     return hdf5_info,features
 
 # def load_frame_from_
@@ -120,15 +126,21 @@ def main():
         metadata.create_episode_buffer()
         with h5py.File(hdf5_path, "r") as data:
             
-            for i in tqdm.tqdm(range(num_frames),desc="Processing frames",leave=False):
+            for i in tqdm.tqdm(range(args.start_frame,args.end_frame),desc="Processing frames",leave=False):
                 frame={}
                 camera_keys = get_cameras(data)
+                #仅top_camera
+                if args.resize:
+                    camera_keys=["cam_high"]
+                
                 for camera in camera_keys:
                     compressed_image_data = data[f"/observations/images/{camera}"][i]  # 获取第i帧
                     image_array = np.frombuffer(compressed_image_data, dtype=np.uint8)
                     decoded_image = cv2.imdecode(image_array, 1)  # 解码为彩色图像
                     image_rgb=cv2.cvtColor(decoded_image,cv2.COLOR_BGR2RGB)
-                    
+                    if args.resize:
+                        target_size = (960, 704)
+                        image_rgb=cv2.resize(image_rgb,target_size, interpolation=cv2.INTER_AREA)
                     frame[f"observation.images.{camera}"] = image_rgb
                 
                 #转换成float32
