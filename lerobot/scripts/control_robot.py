@@ -187,6 +187,7 @@ def calibrate(robot: Robot, cfg: CalibrateControlConfig):
         return
 
     arms = robot.available_arms if cfg.arms is None else cfg.arms
+
     unknown_arms = [arm_id for arm_id in arms if arm_id not in robot.available_arms]
     available_arms_str = " ".join(robot.available_arms)
     unknown_arms_str = " ".join(unknown_arms)
@@ -216,11 +217,19 @@ def calibrate(robot: Robot, cfg: CalibrateControlConfig):
     if robot.robot_type.startswith("lekiwi") and "main_follower" in arms:
         print("Calibrating only the lekiwi follower arm 'main_follower'...")
         robot.calibrate_follower()
+        # robot.activate_calibration()
         return
 
     if robot.robot_type.startswith("lekiwi") and "main_leader" in arms:
         print("Calibrating only the lekiwi leader arm 'main_leader'...")
         robot.calibrate_leader()
+        return
+    #新增manipulator的标定
+    if robot.robot_type.startswith("so101") and "main_leader" in arms:
+        print("Calibrating the so101 leader arm 'main_leader'and follower arm 'main_follower'...")
+        #增加连接，因为activate_calibration()函数中没有自动连接
+        robot.connect()
+        robot.activate_calibration()
         return
 
     # Calling `connect` automatically runs calibration

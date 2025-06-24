@@ -300,6 +300,12 @@ class ManipulatorRobot:
         def load_or_run_calibration_(name, arm, arm_type):
             arm_id = get_arm_id(name, arm_type)
             arm_calib_path = self.calibration_dir / f"{arm_id}.json"
+            #修改为win下的地址
+            # import pathlib
+            # win_calibration_dir=Path("./configself")
+            # arm_calib_path = win_calibration_dir / f"{arm_id}.json"
+            
+            
 
             if arm_calib_path.exists():
                 with open(arm_calib_path) as f:
@@ -441,7 +447,6 @@ class ManipulatorRobot:
             # the motors. Note: this configuration is not in the official STS3215 Memory Table
             self.follower_arms[name].write("Maximum_Acceleration", 254)
             self.follower_arms[name].write("Acceleration", 254)
-
     def teleop_step(
         self, record_data=False
     ) -> None | tuple[dict[str, torch.Tensor], dict[str, torch.Tensor]]:

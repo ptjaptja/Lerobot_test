@@ -434,7 +434,7 @@ class MossRobotConfig(ManipulatorRobotConfig):
 @RobotConfig.register_subclass("so101")
 @dataclass
 class So101RobotConfig(ManipulatorRobotConfig):
-    calibration_dir: str = ".cache/calibration/so101"
+    calibration_dir: str = "./configself"
     # `max_relative_target` limits the magnitude of the relative positional target vector for safety purposes.
     # Set this to a positive scalar to have the same value for all motors, or a list that is the same length as
     # the number of motors in your follower arms.
@@ -443,7 +443,7 @@ class So101RobotConfig(ManipulatorRobotConfig):
     leader_arms: dict[str, MotorsBusConfig] = field(
         default_factory=lambda: {
             "main": FeetechMotorsBusConfig(
-                port="/dev/tty.usbmodem58760431091",
+                port="COM3",
                 motors={
                     # name: (index, model)
                     "shoulder_pan": [1, "sts3215"],
@@ -460,7 +460,7 @@ class So101RobotConfig(ManipulatorRobotConfig):
     follower_arms: dict[str, MotorsBusConfig] = field(
         default_factory=lambda: {
             "main": FeetechMotorsBusConfig(
-                port="COM3",
+                port="COM4",
                 motors={
                     # name: (index, model)
                     "shoulder_pan": [1, "sts3215"],
